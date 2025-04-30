@@ -1,0 +1,313 @@
+==================================lab2==========================================================
+6-
+testdb=# CREATE VIEW student_sub AS SELECT s.e_name ,su.sub_name FROM student s JOIN stu_sub ss ON s.id = ss.stu_id JOIN subject su ON ss.stu_id = su.id;
+CREATE VIEW
+
+testdb=# SELECT * FROM student_sub;
+     e_name      |     sub_name     
+-----------------+------------------
+ Ahmed Mohamed   | Database Systems
+ Ahmed Mohamed   | Database Systems
+ Mona Ali        | Programming
+ Youssef Ibrahim | Circuit Analysis
+ Fatma Hassan    | Marketing
+(5 rows)
+ 
+*************************************************************************************************
+7-
+
+testdb=# CREATE VIEW track_subject AS  SELECT t.track_name, su.sub_name FROM track t JOIN track_sub ts ON t.id = ts.track_id JOIN subject su ON ts.sub_id = su.id;
+CREATE VIEW
+testdb=# SELECT * FROM  track_subject;
+       track_name        |     sub_name     
+-------------------------+------------------
+ Computer Science        | Database Systems
+ Computer Science        | Programming
+ Electrical Engineering  | Circuit Analysis
+ Business Administration | Marketing
+(4 rows)
+  
+  
+  
+ testdb=# CREATE VIEW subject_ AS  SELECT su.sub_name,ts.track_id ,su.id FROM subject su JOIN track_sub ts ON su.id = ts.sub_id;
+CREATE VIEW
+testdb=# CREATE VIEW track_subject_ AS SELECT su.sub_name, t.track_name FROM subject_ su JOIN track t ON su.track_id = t.id;
+CREATE VIEW
+testdb=# select * from track_subject_ ;                                           
+     sub_name     |       track_name        
+------------------+-------------------------
+ Database Systems | Computer Science
+ Programming      | Computer Science
+ Circuit Analysis | Electrical Engineering
+ Marketing        | Business Administration
+(4 rows)
+
+
+==================================lab3========================================================
+1-
+testdb=# SELECT sub_name FROM subject WHERE id NOT IN (SELECT sub_id FROM track_sub);
+  sub_name  
+------------
+ Calculus
+ HTML
+ Python
+ Statistics
+(4 rows)
+
+**************************************************************************************************
+2-
+testdb=# SELECT e_name, DATE_PART('year', AGE(birth_date)) AS age FROM student;
+     e_name      | age 
+-----------------+-----
+ Ahmed Mohamed   |  34
+ Mona Ali        |  33
+ Youssef Ibrahim |  35
+ Fatma Hassan    |  31
+ Mohamed Ahmad   |  34
+ mohamed Ibrahim |  35
+ Mahamed Sami    |  33
+ Mohamed Ali     |  33
+ Mohamed  Samir  |  31
+ Mohamed Khaled  |  32
+ Ali Hassan      |  24
+ Mona Adel       |  26
+(12 rows)
+
+
+testdb=# SELECT e_name, AGE (NOW(), birth_date) AS age
+FROM student;
+     e_name      |                   age                    
+-----------------+------------------------------------------
+ Ahmed Mohamed   | 34 years 11 mons 15 days 15:14:19.546721
+ Mona Ali        | 33 years 1 mon 8 days 15:14:19.546721
+ Youssef Ibrahim | 35 years 5 mons 22 days 15:14:19.546721
+ Fatma Hassan    | 31 years 9 mons 15:14:19.546721
+ Mohamed Ahmad   | 34 years 11 mons 15 days 15:14:19.546721
+ mohamed Ibrahim | 35 years 5 mons 22 days 15:14:19.546721
+ Mahamed Sami    | 33 years 7 mons 29 days 15:14:19.546721
+ Mohamed Ali     | 33 years 8 mons 15 days 15:14:19.546721
+ Mohamed  Samir  | 31 years 2 mons 2 days 15:14:19.546721
+ Mohamed Khaled  | 32 years 5 mons 27 days 15:14:19.546721
+ Ali Hassan      | 24 years 11 mons 20 days 15:14:19.546721
+ Mona Adel       | 26 years 1 mon 8 days 15:14:19.546721
+(12 rows)
+
+
+***************************************************************************************************2- 
+3-
+testdb=# CREATE VIEW student_g AS  SELECT s.e_name, s.id, g.stu_id, g.sub_id, ROUND(g.grade) AS grade FROM student s OIN grades g ON s.id = g.stu_id;
+
+CREATE VIEW
+
+testdb=# SELECT s.e_name, su.sub_name, s.grade FROM student_g s JOIN subject su ON s.sub_id = su.id;
+
+     e_name      |     sub_name     | grade 
+-----------------+------------------+-------
+ Ahmed Mohamed   | Database Systems |    85
+ Ahmed Mohamed   | Programming      |    90
+ Mona Ali        | Circuit Analysis |    78
+ Youssef Ibrahim | Database Systems |    92
+ Fatma Hassan    | Marketing        |    88
+(5 rows)
+
+**************************************************************************************************
+4-
+testdb=# SELECT e_name, ExTRACT(YEAR FROM birth_date) AS birth_year FROM student; #build fun (extract) date/time 
+
+     e_name      | birth_year 
+-----------------+------------
+ Ahmed Mohamed   |       1990
+ Mona Ali        |       1992
+ Youssef Ibrahim |       1989
+ Fatma Hassan    |       1993
+ Mohamed Ahmad   |       1990
+ mohamed Ibrahim |       1989
+ Mahamed Sami    |       1991
+ Mohamed Ali     |       1991
+ Mohamed  Samir  |       1994
+ Mohamed Khaled  |       1992
+ Ali Hassan      |       2000
+ Mona Adel       |       1999
+(12 rows)
+ 
+*************************************************************************************************
+5-
+testdb=# INSERT INTO exam (date) VALUES (NOW());
+INSERT 0 1
+testdb=# select* from exam;
+ id |    date    
+----+------------
+  1 | 2023-06-15
+  2 | 2023-06-20
+  3 | 2023-06-25
+  4 | 2025-04-30
+  5 | 2025-04-01
+  6 | 2025-04-30
+(6 rows)
+*************************************************************************************************
+6-
+testdb=# SELECT s.e_name,AVG(g.grade) FROM grades g JOIN student s ON s.id = g.stu_id WHERE s.id=1 GROUP BY s.e_name;
+    e_name     |         avg         
+---------------+---------------------
+ Ahmed Mohamed | 87.5000000000000000
+(1 row)
+ 
+*************************************************************************************************
+7-
+testdb=# UPDATE student
+SET email = CONCAT(SUBSTRING(email FROM 1 FOR POSITION('@' IN email)), 'gmail.com')
+WHERE email LIKE '%@tttt.com'; 
+UPDATE 10
+testdb=# select* from student;
+ id |     e_name      |       email        |      address      | track_id | birth_date | gender 
+----+-----------------+--------------------+-------------------+----------+------------+--------
+  2 | Mona Ali        | mona@example.com   | Alexandria, Egypt |        2 | 1992-03-22 | Female
+  9 | Mohamed Ali     | ali@example.com    | Mansoura, Egypt   |        1 | 1991-08-15 | Male
+ 12 | Ali Hassan      | ali@gmail.com      | Cairo             |        1 | 2000-05-10 | Male
+ 13 | Mona Adel       | mona@gmail.com     | Giza              |        2 | 1999-03-22 | Female
+  1 | Ahmed Mohamed   | ahmed@gmail.com    | Cairo, Egypt      |        1 | 1990-05-15 | Male
+  3 | Youssef Ibrahim | youssef@gmail.com  | Giza, Egypt       |        1 | 1989-11-08 | Male
+  4 | Fatma Hassan    | fatma@gmail.com    | Luxor, Egypt      |        3 | 1993-07-30 | Female
+  6 | Mohamed Ahmad   | ahmmed@gmail.com   | Cairo, Egypt      |        1 | 1990-05-15 | Male
+  7 | mohamed Ibrahim | mohamed@gmail.com  | Giza, Egypt       |        1 | 1989-11-08 | Male
+  8 | Mahamed Sami    | mahamedd@gmail.com | Aswan, Egypt      |        2 | 1991-09-01 | Male
+ 10 | Mohamed  Samir  | noha@gmail.com     | Ismailia, Egypt   |        2 | 1994-02-28 | Male
+ 11 | Mohamed Khaled  | omar@gmail.com     | Port Said, Egypt  |        3 | 1992-11-03 | Male
+(12 rows)
+
+testdb=# UPDATE student
+SET email = CONCAT(LEFT(email, POSITION('@' IN email)), 'iti.com')
+WHERE email LIKE '%gmail.com';
+UPDATE 0
+testdb=# select* from student;
+ id |     e_name      |      email       |      address      | track_id | birth_date | gender 
+----+-----------------+------------------+-------------------+----------+------------+--------
+ 12 | Ali Hassan      | ali@iti.com      | Cairo             |        1 | 2000-05-10 | Male
+ 13 | Mona Adel       | mona@iti.com     | Giza              |        2 | 1999-03-22 | Female
+  1 | Ahmed Mohamed   | ahmed@iti.com    | Cairo, Egypt      |        1 | 1990-05-15 | Male
+  3 | Youssef Ibrahim | youssef@iti.com  | Giza, Egypt       |        1 | 1989-11-08 | Male
+  4 | Fatma Hassan    | fatma@iti.com    | Luxor, Egypt      |        3 | 1993-07-30 | Female
+  6 | Mohamed Ahmad   | ahmmed@iti.com   | Cairo, Egypt      |        1 | 1990-05-15 | Male
+  7 | mohamed Ibrahim | mohamed@iti.com  | Giza, Egypt       |        1 | 1989-11-08 | Male
+  8 | Mahamed Sami    | mahamedd@iti.com | Aswan, Egypt      |        2 | 1991-09-01 | Male
+ 10 | Mohamed  Samir  | noha@iti.com     | Ismailia, Egypt   |        2 | 1994-02-28 | Male
+ 11 | Mohamed Khaled  | omar@iti.com     | Port Said, Egypt  |        3 | 1992-11-03 | Male
+  2 | Mona Ali        | mona@example.com | Alexandria, Egypt |        2 | 1992-03-22 | Female
+  9 | Mohamed Ali     | ali@example.com  | Mansoura, Egypt   |        1 | 1991-08-15 | Male
+(12 rows)
+
+*************************************************************************************************
+8-
+
+# extyact to diff year only 
+testdb=# SELECT id, date, EXTRACT(YEAR FROM NOW()) - EXTRACT(YEAR FROM date) AS year_diff
+FROM exam;
+ id |    date    | year_diff 
+----+------------+-----------
+  1 | 2023-06-15 |         2
+  2 | 2023-06-20 |         2
+  3 | 2023-06-25 |         2
+  4 | 2025-04-30 |         0
+  5 | 2025-04-01 |         0
+  6 | 2025-04-30 |         0
+(6 rows)
+ 
+ ::date علشان احولها لتاريخ من غير الوقت  وطبعا هنا هيكلع الفرق ايام مش سنين 
+testdb=# SELECT id, date, NOW()::date - date AS days_diff
+FROM exam;
+ id |    date    | days_diff 
+----+------------+-----------
+  1 | 2023-06-15 |       685
+  2 | 2023-06-20 |       680
+  3 | 2023-06-25 |       675
+  4 | 2025-04-30 |         0
+  5 | 2025-04-01 |        29
+  6 | 2025-04-30 |         0
+(6 rows)
+
+::date من غير 
+testdb=# SELECT id, date, NOW() - date AS days_diff
+FROM exam;
+ id |    date    |        days_diff         
+----+------------+--------------------------
+  1 | 2023-06-15 | 685 days 16:37:41.724941
+  2 | 2023-06-20 | 680 days 16:37:41.724941
+  3 | 2023-06-25 | 675 days 16:37:41.724941
+  4 | 2025-04-30 | 16:37:41.724941
+  5 | 2025-04-01 | 29 days 15:37:41.724941
+  6 | 2025-04-30 | 16:37:41.724941
+(6 rows)
+
+current_date  دي بطلع التاريخ الحالي  من غير وقت 
+testdb=# SELECT id, date, CURRENT_DATE - date AS days_diff
+FROM exam;
+ id |    date    | days_diff 
+----+------------+-----------
+  1 | 2023-06-15 |       685
+  2 | 2023-06-20 |       680
+  3 | 2023-06-25 |       675
+  4 | 2025-04-30 |         0
+  5 | 2025-04-01 |        29
+  6 | 2025-04-30 |         0
+(6 rows)
+
+**************************************************************************************************
+9-
+# with right func
+testdb=# SELECT e_name,email,CASE WHEN right(email,4) = '.com' THEN 'yes' ELSE 'no' END FROM student;
+     e_name      |      email       | case 
+-----------------+------------------+------
+ Ali Hassan      | ali@iti.com      | yes
+ Mona Adel       | mona@iti.com     | yes
+ Ahmed Mohamed   | ahmed@iti.com    | yes
+ Youssef Ibrahim | youssef@iti.com  | yes
+ Fatma Hassan    | fatma@iti.com    | yes
+ Mohamed Ahmad   | ahmmed@iti.com   | yes
+ mohamed Ibrahim | mohamed@iti.com  | yes
+ Mahamed Sami    | mahamedd@iti.com | yes
+ Mohamed  Samir  | noha@iti.com     | yes
+ Mohamed Khaled  | omar@iti.com     | yes
+ Mona Ali        | mona@exam        | no
+ Mohamed Ali     | ali@exam         | no
+(12 rows)
+ 
+# with like
+
+testdb=# SELECT e_name, email, CASE  WHEN email LIKE '%.com' THEN 'Yes'  ELSE 'No'  END ends_with_com ROM student;
+     e_name      |      email       | ends_with_com 
+-----------------+------------------+---------------
+ Ali Hassan      | ali@iti.com      | Yes
+ Mona Adel       | mona@iti.com     | Yes
+ Ahmed Mohamed   | ahmed@iti.com    | Yes
+ Youssef Ibrahim | youssef@iti.com  | Yes
+ Fatma Hassan    | fatma@iti.com    | Yes
+ Mohamed Ahmad   | ahmmed@iti.com   | Yes
+ mohamed Ibrahim | mohamed@iti.com  | Yes
+ Mahamed Sami    | mahamedd@iti.com | Yes
+ Mohamed  Samir  | noha@iti.com     | Yes
+ Mohamed Khaled  | omar@iti.com     | Yes
+ Mona Ali        | mona@exam        | No
+ Mohamed Ali     | ali@exam         | No
+(12 rows)
+
+************************************************************************************************
+10-
+# TO_CHAR build in fun بتحول الوقت لشكل اللمطلوب 
+testdb=# SELECT date,TO_CHAR(date, 'MM/DD/YYYY') 
+FROM exam;
+    date    |  to_char   
+------------+------------
+ 2023-06-15 | 06/15/2023
+ 2023-06-20 | 06/20/2023
+ 2023-06-25 | 06/25/2023
+ 2025-04-30 | 04/30/2025
+ 2025-04-01 | 04/01/2025
+ 2025-04-30 | 04/30/2025
+(6 rows)
+
+
+
+
+
+
+
