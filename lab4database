@@ -1,0 +1,272 @@
+===============================================LAB 4==============================================
+
+1-
+
+postgres=# create function multiply(a int ,b int) 
+returns int  as $$ 
+begin 
+   return a*b ;
+end;
+$$ language plpgsql; 
+
+CREATE FUNCTION
+
+postgres=# select multiply(5,3);
+ multiply 
+----------
+       15
+(1 row)
+**************************************************************************************************
+2-
+postgres=# create function hello_world(name text) 
+returns text  as $$ 
+begin 
+   return 'Welcome,'||name||'!' ; 
+end; 
+$$ language plpgsql; 
+
+CREATE FUNCTION
+
+postgres=# select hello_world('remonda');
+   hello_world    
+------------------
+ Welcome,remonda!
+(1 row)
+
+
+postgres=# create function hello_worldd(name text) 
+returns text as $$
+begin
+  return concat ('Welcome,',name,'!') ;
+end;
+$$ language plpgsql; 
+CREATE FUNCTION
+postgres=# select hello_worldd('remonda');
+   hello_worldd   
+------------------
+ Welcome,remonda!
+(1 row)
+
+
+**************************************************************************************************
+3- 
+postgres=# create function odd_even(num int) 
+returns text as $$
+begin
+    if num % 2=0 then 
+          return 'even';
+    else
+         return 'odd' ; 
+    end if;
+end;
+$$ language plpgsql; 
+
+CREATE FUNCTION
+
+postgres=# select odd_even(10);
+ odd_even 
+----------
+ even
+(1 row)
+
+postgres=# select odd_even(3);
+ odd_even 
+----------
+ odd
+(1 row)
+ *************************************************************************************************
+ 4-
+ 
+ testdb=# create function student_info(_id int )
+  returns table(
+       id int , 
+       e_name varchar(100) ,
+       email varchar(100),
+        address text,
+        track_id int,
+        birth_date date ,
+        gender gender_enum) as $$
+ begin return query 
+         select s.id,s.e_name ,s.email , s.address, s.track_id ,s.birth_date ,s. gender 
+         from student s 
+         where s.id = _id; 
+ end; $$ language plpgsql; 
+ 
+CREATE FUNCTION
+
+
+testdb=# select student_info (2);
+                           student_info                           
+------------------------------------------------------------------
+ (2,"Mona Ali",mona@exam,"Alexandria, Egypt",2,1992-03-22,Female)
+(1 row)
+
+testdb=# select student_info (5);
+ student_info 
+--------------
+(0 rows)
+
+testdb=# select student_info (1);
+                            student_info                            
+--------------------------------------------------------------------
+ (1,"Ahmed Mohamed",ahmed@iti.com,"Cairo, Egypt",1,1990-05-15,Male)
+(1 row)
+
+ ###SETOF 
+testdb=# create function students_info(_id int )
+returns setof student as $$ 
+begin 
+      return query 
+      select * from student s where s.id = _id; 
+end;
+$$ language plpgsql;
+ 
+CREATE FUNCTION
+testdb=# select student_info (1);
+                            student_info                            
+--------------------------------------------------------------------
+ (1,"Ahmed Mohamed",ahmed@iti.com,"Cairo, Egypt",1,1990-05-15,Male)
+(1 row)
+
+testdb=# select student_info (2);
+                           student_info                           
+------------------------------------------------------------------
+ (2,"Mona Ali",mona@exam,"Alexandria, Egypt",2,1992-03-22,Female)
+(1 row)
+
+*************************************************************************************************
+5-
+
+testdb=# create function grade_avg(subject_name text) 
+returns int as $$ 
+begin 
+     return(select avg(g.grade)
+     from grades g join subject su on g.sub_id=su.id 
+     where su.sub_name=subject_name);  
+end;
+$$ language plpgsql;
+ 
+CREATE FUNCTION
+
+testdb=# select grade_avg('Database Systems');
+ grade_avg 
+-----------
+        89
+(1 row)
+ 
+ ************************************************************************************************
+ 
+6-
+reate table deleted_student (
+        deleted_time timestamp  DEFAULT now() 
+) inherits (student);
+
+CREATE TABLE
+
+testdb=# create function save_deleted_student()
+returns trigger as $$
+begin
+    insert into  deleted_student (e_name, email, address, track_id, birth_date, gender)
+    values (old.e_name, old.email, old.address, old.track_id, old.birth_date, old.gender);
+    return old; 
+end;
+$$ language plpgsql;
+
+CREATE FUNCTION
+
+
+create trigger stutent_delete before delete on student for each row execute function save_deleted_student();
+CREATE TRIGGER
+
+testdb=# delete from student where id=1;
+DELETE 1
+
+testdb=# select * from deleted_student;
+
+
+
+id |    e_name     |     email     |   address    | track_id | birth_date | gender |       deleted_time        
+----+---------------+---------------+--------------+----------+------------+--------+---------------------------
+ 16 | Ahmed Mohamed | ahmed@iti.com | Cairo, Egypt |  1 | 1990-05-15 | Male   | 2025-05-01 14:59:46.55667
+(1 row)
+
+
+*************************************************************************************************
+
+7-
+
+testdb=# CREATE TABLE changes_student (
+    change_id SERIAL PRIMARY KEY,
+    student_id INT,
+    action_type VARCHAR(10),
+    action_time TIMESTAMP DEFAULT now(),
+    description TEXT
+);
+
+CREATE TABLE
+
+
+!= , <> , DISTINCT علي حسب null value
+testdb=# CREATE FUNCTION student_changes()
+RETURNS TRIGGER AS $$
+DECLARE
+    changes TEXT := '';
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO changes_student(student_id, action_type, description)
+        VALUES (NEW.id, TG_OP, 'Added student: ' || NEW.e_name);
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        IF OLD.e_name <>  NEW.e_name THEN
+            changes := changes || 'e_name changed from "' || OLD.e_name || '" to "' || NEW.e_name || '", ';
+        END IF;
+        IF OLD.email <> NEW.email THEN
+            changes := changes || 'email changed from "' || OLD.email || '" to "' || NEW.email || '", ';
+        END IF;
+        IF OLD.address IS DISTINCT FROM NEW.address THEN
+            changes := changes || 'address changed from "' || OLD.address || '" to "' || NEW.address || '", ';
+        END IF;
+        IF OLD.track_id IS DISTINCT FROM NEW.track_id THEN
+            changes := changes || 'track_id changed from "' || OLD.track_id || '" to "' || NEW.track_id || '", ';
+        END IF;
+        IF OLD.birth_date IS DISTINCT FROM NEW.birth_date THEN
+            changes := changes || 'birth_date changed from "' || OLD.birth_date || '" to "' || NEW.birth_date || '", ';
+        END IF;
+        IF OLD.gender IS DISTINCT FROM NEW.gender THEN
+            changes := changes || 'gender changed from "' || OLD.gender || '" to "' || NEW.gender || '", ';
+        END IF;
+ نشيل الفصلة  اللي في الاخر  والمسافة في سلسة التغيرات 
+        IF RIGHT(changes, 2) = ', ' THEN
+            changes := LEFT(changes, LENGTH(changes) - 2);
+        END IF;
+
+        INSERT INTO changes_student(student_id, action_type, description)
+        VALUES (NEW.id, TG_OP, 'Updated student: ' || NEW.e_name || ' | ' || changes);
+
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO changes_student(student_id, action_type, description)
+        VALUES (OLD.id, TG_OP, 'Deleted student: ' || OLD.e_name);
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION
+
+testdb=# CREATE TRIGGER student_activity
+AFTER INSERT OR UPDATE OR DELETE ON student
+FOR EACH ROW
+EXECUTE FUNCTION student_changes();
+
+CREATE TRIGGER
+
+
+
+change_id | student_id | action_type |        action_time         |                                description                                
+-----------+------------+-------------+----------------------------+---------------------------------------------------------------------------
+         4 |         30 | DELETE      | 2025-05-01 17:52:32.27526  | Deleted student: Ali Gamal
+         3 |         30 | UPDATE      | 2025-05-01 17:52:32.27305  | Updated student: Ali Gamal | address changed from "Cairo" to "Alexandria"
+         2 |         30 | INSERT      | 2025-05-01 17:50:14.583982 | Added student: Ali Gamal
+(3 rows)
+
